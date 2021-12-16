@@ -1,97 +1,101 @@
 package com.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+
+@Data
+@NoArgsConstructor
 @Entity
 @Table(name="admin")
-public class Admin {
-
-	//admin fields
+public class Admin { 
 	
-		@Id
-		@GeneratedValue
-		@Column(name="id")
-		private int id;
-		@NotNull
-		private String username;
-		@NotNull
-		@Size(min=8,message="password should have atleast 8 characters")
-		private String password;
-		
-		@Pattern(regexp = "[a-zA-Z]{3,}@[a-zA-Z]{2,}.[a-zA-Z]{2,}", message = "Please Provide the valid format of email")
-		private String email;
-			
-		private String role;
-		
-		@JsonIgnore
-		private boolean isLoggedIn = false;
+	
 
-		//getters and setters
-		public int getId() {
-			return id;
-		}
+	//Fields
+	@Id
+	@GeneratedValue
+	private int adminId;
+	
+	@Column(name="fullname")
+	@NotEmpty
+	@Size(min=3, message="student fullname should have atleast 3 char")
+	private String fullName;
+	
+	private String contactNo;
+	
+	
+	@OneToOne(cascade=CascadeType.ALL)
+	@JoinColumn(name="login")
+	private Login login;
+	
+	
+	public Admin() {
+	}
 
-		public void setId(int id) {
-			this.id = id;
-		}
+	public int getAdminId() {
+		return adminId;
+	}
 
-		public String getUsername() {
-			return username;
-		}
 
-		public void setUsername(String username) {
-			this.username = username;
-		}
+	public void setAdminId(int adminId) {
+		this.adminId = adminId;
+	}
 
-		public String getPassword() {
-			return password;
-		}
 
-		public void setPassword(String password) {
-			this.password = password;
-		}
+	public String getFullName() {
+		return fullName;
+	}
 
-		public String getEmail() {
-			return email;
-		}
 
-		public void setEmail(String email) {
-			this.email = email;
-		}
+	public void setFullName(String fullName) {
+		this.fullName = fullName;
+	}
 
-		public String getRole() {
-			return role;
-		}
 
-		public void setRole(String role) {
-			this.role = role;
-		}
+	public String getContactNo() {
+		return contactNo;
+	}
 
-		public boolean isLoggedIn() {
-			return isLoggedIn;
-		}
 
-		public void setLoggedIn(boolean isLoggedIn) {
-			this.isLoggedIn = isLoggedIn;
-		}
+	public void setContactNo(String contactNo) {
+		this.contactNo = contactNo;
+	}
 
-		
-		//to string
-		
-		@Override
-		public String toString() {
-			return "Admin [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email
-					+ ", role=" + role + ", isLoggedIn=" + isLoggedIn + "]";
-		}
-		
 
+	public Login getLogin() {
+		return login;
+	}
+
+
+	public void setLogin(Login login) {
+		this.login = login;
+	}
+
+
+	@Override
+	public String toString() {
+		return "Admin [adminId=" + adminId + ", fullName=" + fullName + ", contactNo=" + contactNo + ", login=" + login
+				+ "]";
+	}
+	
+	
+	
 }

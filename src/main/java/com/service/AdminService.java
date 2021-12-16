@@ -1,108 +1,128 @@
 package com.service;
 
-import java.sql.SQLException;
-import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.advices.AdminNotFoundException;
-import com.advices.ResourceNotFoundException;
+import com.dto.AdminDto;
+import com.dto.AdminInputDto;
 import com.model.Admin;
+import com.model.Login;
 import com.repository.AdminRepository;
+import com.repository.LoginRepository;
+
+
 
 @Service
-public class AdminService {
+public class AdminService  {
 
 	@Autowired
-	AdminRepository adminRepo;
-
-//implementation methods
-
-	public Admin addAdmin(Admin c) {
-		adminRepo.save(c);
-		return c;
-	}
-
-	public List<Admin> getAdmins() {
-		List<Admin> lc1 = adminRepo.findAll();
-
-		return lc1;
-	}
-
-	public Admin getAdminById(int cid) throws Throwable {
-		Supplier s1 = () -> new ResourceNotFoundException("Admin Does not exist in the database");
-		Admin c = adminRepo.findById(cid).orElseThrow(s1);
-		return c;
-	}
-
-	public String deleteAdminById(int cid) {
-
-		adminRepo.deleteById(cid);
-
-		return "Deleted";
-	}
-
-	public Admin updateAdmin(int Id, Admin admin) throws AdminNotFoundException {
-
-		Integer getId = Integer.valueOf(Id);
-
-		if (getId instanceof Integer) {
-			Optional<Admin> optional = adminRepo.findById(getId);
-
-			if (optional.isPresent()) {
-				Admin gotAdmin = optional.get();
-				gotAdmin.setUsername(admin.getUsername());
-				gotAdmin.setPassword(admin.getPassword());
-				gotAdmin.setEmail(admin.getEmail());
-
-				Admin updateAdmin = adminRepo.save(gotAdmin);
-				return updateAdmin;
-			}
-
-			else {
-				throw new AdminNotFoundException("Given admin id is not present in the database.");
-			}
-		} else {
-			throw new AdminNotFoundException("The ID should be a number type");
-		}
-
-	}
-
-	public List<Admin> addAdmins(List<Admin> ls) {
-		adminRepo.saveAll(ls);
-		return ls;
-	}
+	AdminRepository adminDao;
 	
-public Admin validateAdmin(String username, String password, String role) throws NullPointerException, NumberFormatException, InputMismatchException, AdminNotFoundException {
-		
-		
-		if(role.equalsIgnoreCase("Admin")){
-			if(username!=null) {
-				if(password!=null) {
-					Admin validAdmin = adminRepo.findByUsernameAndPassword(username, password);
-					if(validAdmin != null) {
-						return validAdmin;
-					}
-					else {
-						throw new AdminNotFoundException("Username or password is not exist. please try again.");
-					}
-				}
-				else {
-					throw new AdminNotFoundException("Please provide the password.");
-				}
-			}
-			else {
-				throw new AdminNotFoundException("Please provide the username.");
-			}
+	
+	@Autowired
+	LoginRepository loginDao;
+	
+	private static Logger logger = LogManager.getLogger();
+	
+	
+	public List<Admin> getAllAdmins() {
+		return adminDao.findAll();
+	}
+
+	
+	public AdminDto getAdminById(int id) throws AdminNotFoundException {
+		Optional<Admin> admin = adminDao.findById(id);
+		if(!admin.isPresent()) {
+			throw new AdminNotFoundException("Admin not found with given id "+id);
 		}
-		else {
-			throw new AdminNotFoundException("Given Admin is not present.");
+		
+		Admin std = admin.get();
+		
+		// Create dto obj
+		AdminDto dto = new AdminDto();
+		
+		// update dto with admin details
+		dto.setAdminId(std.getAdminId());
+		dto.setFullName(std.getFullName());
+		dto.setContactNo(std.getContactNo());
+		dto.setEmail(std.getLogin().getEmail());
+		dto.setRole(std.getLogin().getRole());
+		dto.setLoginId(std.getLogin().getLoginId());
+		return dto;
+	}
+
+	public Admin addAdmin(AdminInputDto admin) {
+		
+		Admin std = new Admin();
+		
+		// convert admindto obj to admin obj
+		
+		std.setContactNo(admin.getContactNo());
+		std.setFullName(admin.getFullName());
+		
+		Login login = new Login();
+		login.setEmail(admin.getEmail());
+		login.setRole(admin.getRole());
+		login.setPassword(admin.getPassword());
+		
+		std.setLogin(login);
+				
+		return adminDao.save(std);
+	}
+
+	
+	public Admin updateAdmin(int rollNo, AdminDto admin) throws AdminNotFoundException {
+		
+		Optional<Admin> optional = adminDao.findById(rollNo);
+		if(!optional.isPresent()) {
+			throw new AdminNotFoundException("Admin not found with given rollNo "+rollNo);
 		}
+		Admin std = optional.get();
+		
+		std.setFullName(admin.getFullName());
+		std.setContactNo(admin.getContactNo());
+	
+		Login login = loginDao.findById(admin.getLoginId()).get();
+		
+	    login.setEmail(admin.getEmail());
+	    login.setRole(admin.getRole());
+	    
+		std.setLogin(login);
+		return adminDao.save(std);
+	}
+
+	
+	public Admin deleteAdminById(int rollNo) {
+		Admin std = adminDao.findById(rollNo).get();
+		adminDao.deleteById(rollNo);
+		return std;
+	}
+
+	
+	public Admin updateAdminName(int rollNo, String newName) {
+		Admin std = adminDao.findById(rollNo).get();
+		std.setFullName(newName);
+		return adminDao.save(std);
+	}
+
+	
+	public Admin getAdminByName(String fullName) {
+		Admin admin = adminDao.findByFullName(fullName);
+		return admin;
+	}
+
+	
+	public void deleteAdminByName(String fullName) {
+		adminDao.deleteByName(fullName);
 		
 	}
+
+	
 
 }

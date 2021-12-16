@@ -13,8 +13,15 @@ import com.model.Admin;
 @Repository
 public interface AdminRepository extends JpaRepository<Admin, Integer>
 {
-public Optional<Admin> findByUsername(String username);
-	
-	@Query("select c from Admin c where c.username=:user and c.password=:pass")
-	public Admin findByUsernameAndPassword(@Param("user") String username, @Param("pass") String Password);
+	// Custom methods
+		Admin findByFullName(String fullName);
+		//Student findByAge(int age);
+		
+		// JPQL Query methods
+		//@Query("delete from Student s where s.fullName=:name")
+		//Student deleteStudentByName(@Param("name") String fullName);
+		
+		// Native Query method
+		@Query(value="delete from admin where fullname=:name", nativeQuery=true)
+		void deleteByName(@Param("name") String fullName);
 }
